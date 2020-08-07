@@ -1,0 +1,5 @@
+# This config file is required to initialise all DBT projects
+
+dbt_projects:
+  - project_path: dbt_start # must match to the directory path of the DBT project under the service project. I.e. dbt_start or dbt/dbt_start
+  - project_path: dbt_start_two

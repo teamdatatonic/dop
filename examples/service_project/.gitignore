@@ -1,0 +1,2 @@
+# Ignore the DOP source code, this is pulled in dynamically from the DOP source repository
+embedded_dop/source

@@ -1,0 +1,11 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    entrypoint: 'bash'
+    args: ['-c', 'docker pull eu.gcr.io/${PROJECT_ID}/dop-dbt:latest || exit 0']
+  - name: 'gcr.io/cloud-builders/docker'
+    entrypoint: 'bash'
+    args: [
+      '-c',
+      'docker build . -f embedded_dop/source/infrastructure/executor/dbt/Dockerfile -t eu.gcr.io/${PROJECT_ID}/dop-dbt:${SHORT_SHA}-${_DATETIME} -t eu.gcr.io/${PROJECT_ID}/dop-dbt:latest --cache-from eu.gcr.io/${PROJECT_ID}/dop-dbt:latest'
+    ]
+images: ['eu.gcr.io/${PROJECT_ID}/dop-dbt:${SHORT_SHA}-${_DATETIME}', 'eu.gcr.io/${PROJECT_ID}/dop-dbt:latest']

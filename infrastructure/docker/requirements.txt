@@ -1,0 +1,3 @@
+-r requirements.composer.txt
+# Additional / modified versions
+dataclasses==0.7

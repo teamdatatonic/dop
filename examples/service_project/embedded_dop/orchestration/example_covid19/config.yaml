@@ -1,0 +1,158 @@
+enabled: true
+schedule_interval: "0 4 * * *"
+timezone: "Europe/London"
+schema: dop_sandbox_us
+params:
+  value_a:
+    - 1
+    - 2
+    - 3
+tasks:
+  - identifier: create_schema_dop_sandbox_us
+    kind:
+      action: materialization
+      target: schema
+    schema: dop_sandbox_us
+
+  - identifier: udf_empty_str_as_null
+    kind:
+      action: materialization
+      target: udf
+    options:
+      arguments:
+        - name: str
+          type: STRING
+    dependencies:
+      - create_schema_dop_sandbox_us
+
+  - identifier: udf_unpivot
+    kind:
+      action: materialization
+      target: udf
+    options:
+      arguments:
+        - name: x
+          type: ANY TYPE
+        - name: col_regex
+          type: STRING
+    dependencies:
+      - create_schema_dop_sandbox_us
+
+  - identifier: assert_upstream_data_is_ready
+    kind:
+      action: assertion
+      target: assertion
+    dependencies:
+      - udf_empty_str_as_null
+
+  - identifier: stg_covid19
+    kind:
+      action: materialization
+      target: table
+    partitioning:
+      field: date
+      data_type: date
+    dependencies:
+      - assert_upstream_data_is_ready
+
+  - identifier: covid19_by_country
+    kind:
+      action: materialization
+      target: table
+    partitioning:
+      field: date
+      data_type: date
+    dependencies:
+      - stg_covid19
+
+  - identifier: covid19_by_country_and_region
+    kind:
+      action: materialization
+      target: table
+    partitioning:
+      field: date
+      data_type: date
+    dependencies:
+      - stg_covid19
+
+  - identifier: view_covid19_by_country_and_region
+    kind:
+      action: materialization
+      target: view
+    dependencies:
+      - covid19_by_country_and_region
+
+  - identifier: data_quality_checks
+    kind:
+      action: assertion
+      target: assertion
+    dependencies:
+      - covid19_by_country
+      - covid19_by_country_and_region
+
+  - identifier: sp_all_countries_and_regions
+    kind:
+      action: materialization
+      target: stored_procedure
+    options:
+      arguments:
+        - name: execution_date
+          type: DATE
+    dependencies:
+      - stg_covid19
+
+  - identifier: invoke_sp_all_countries_and_regions
+    kind:
+      action: invocation
+      target: stored_procedure
+    dependencies:
+      - sp_all_countries_and_regions
+
+  - identifier: dbt_start_test
+    kind:
+      action: dbt
+      target: test
+    options:
+      project: dbt_start
+      version: 0.18.1
+    dependencies:
+      - stg_covid19
+
+  - identifier: dbt_start_staging
+    kind:
+      action: dbt
+      target: run
+    options:
+      project: dbt_start
+      version: 0.18.1
+      arguments:
+        - option: -m
+          value: staging
+    dependencies:
+      - dbt_start_test
+
+  - identifier: dbt_start_aggregation_a
+    kind:
+      action: dbt
+      target: run
+    options:
+      project: dbt_start
+      version: 0.18.1
+      arguments:
+        - option: -m
+          value: aggregation_a
+    dependencies:
+      - dbt_start_staging
+
+  - identifier: dbt_start_aggregation_b
+    kind:
+      action: dbt
+      target: run
+    options:
+      project: dbt_start
+      version: 0.18.1
+      arguments:
+        - option: -m
+          value: aggregation_b
+    dependencies:
+      - dbt_start_aggregation_a

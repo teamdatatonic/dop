@@ -1,0 +1,29 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'Generate Artifact ID'
+    entrypoint: '/bin/bash'
+    args: [
+      "-c",
+      'echo -n ${REPO_NAME}_${BRANCH_NAME}_${SHORT_SHA}_${BUILD_ID} > .artifact_id'
+    ]
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'Generate Commit Hash. This is used by other services, do not modify.'
+    entrypoint: '/bin/bash'
+    args: [
+      "-c",
+      'echo -n ${SHORT_SHA}-${_DATETIME} > .commit-hash'
+    ]
+  - name: 'gcr.io/cloud-builders/gsutil'
+    id: 'Store Artifact, `dop_` is added to the REPO_NAME as a prefix to avoid naming conflict'
+    entrypoint: '/bin/bash'
+    args: [
+      "-c",
+      'gsutil -m rsync -r -d . gs://${_CLOUDBUILD_ARTIFACTS_BUCKET_NAME}/$(cat .artifact_id)/dags/dop_${REPO_NAME}'
+    ]
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'Display Artifact ID - This can be used to deploy'
+    entrypoint: '/bin/bash'
+    args: [
+      "-c",
+      'cat .artifact_id'
+    ]

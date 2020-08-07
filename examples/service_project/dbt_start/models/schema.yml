@@ -1,0 +1,46 @@
+version: 2
+
+sources:
+  - name: jaffle_shop
+    database: bigquery-public-data
+    schema: covid19_open_data
+    loader: BigQuery # informational only (free text)
+    loaded_at_field: CAST(date as timestamp) # configure for all sources
+
+    # meta fields are rendered in auto-generated documentation
+    meta:
+      contains_pii: false
+      owner: "@google"
+
+    # Add tags to this source
+    tags:
+      - covid19
+
+    quoting:
+      database: false
+      schema: false
+      identifier: false
+
+    tables:
+      - name: covid19_open_data
+        freshness: # make this a little more strict
+          warn_after: {count: 1, period: day}
+          error_after: {count: 2, period: day}
+
+models:
+  - name: stg_covid19_cases
+    description: covid19 global open data
+  - name: covid19_cases_by_country
+    description: Global cases by country
+    columns:
+      - name: country_name
+        description: Country name
+        tests:
+          - not_null
+  - name: covid19_cases_by_country_and_region
+    description: Global cases by regions in countries
+    columns:
+      - name: country_name
+        description: Country name
+        tests:
+          - not_null

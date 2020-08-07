@@ -1,0 +1,29 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'Display Artifact ID'
+    entrypoint: '/bin/bash'
+    args: [
+      "-c",
+      'echo ${_DOP_ARTIFACT_ID}'
+    ]
+  - name: 'gcr.io/cloud-builders/gsutil'
+    id: 'List files in the dags/ folder'
+    entrypoint: '/bin/bash'
+    args: [
+      "-c",
+      'gsutil ls gs://${_CLOUDBUILD_ARTIFACTS_BUCKET_NAME}/${_DOP_ARTIFACT_ID}/dags'
+    ]
+  - name: 'gcr.io/cloud-builders/gsutil'
+    id: 'Deploy'
+    entrypoint: '/bin/bash'
+    args: [
+      "-c",
+      'gsutil -m rsync -r -d gs://${_CLOUDBUILD_ARTIFACTS_BUCKET_NAME}/${_DOP_ARTIFACT_ID}/dags/dop_${REPO_NAME} gs://${_DEPLOY_BUCKET_NAME}/dags/dop_${REPO_NAME}'
+    ]
+  - name: 'gcr.io/cloud-builders/gsutil'
+    id: 'Log Deployment'
+    entrypoint: '/bin/bash'
+    args: [
+      "-c",
+      'touch ${_DOP_ARTIFACT_ID} && gsutil -m cp ${_DOP_ARTIFACT_ID} gs://${_CLOUDBUILD_ARTIFACTS_BUCKET_NAME}/deploys/$(date -u "+%Y-%m-%d_%H-%M-%S")/'
+    ]

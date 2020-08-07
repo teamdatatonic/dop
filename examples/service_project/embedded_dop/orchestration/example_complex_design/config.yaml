@@ -1,0 +1,147 @@
+enabled: true
+schedule_interval: "0 4 * * *"
+timezone: "Europe/London"
+schema: sample_dataset
+params:
+  value_a:
+    - 1
+    - 2
+    - 3
+tasks:
+  - identifier: dim_date
+    kind:
+      action: materialization
+      target: table
+  - identifier: salesforce_marketing_cloud_is_ready
+    kind:
+      action: assertion
+      target: assertion
+  - identifier: staging_salesforce_marketing_cloud
+    kind:
+      action: materialization
+      target: table
+    dependencies:
+      - salesforce_marketing_cloud_is_ready
+      - dim_date
+  - identifier: fact_transaction
+    kind:
+      action: materialization
+      target: table
+    dependencies:
+      - dim_customer
+      - staging_salesforce_marketing_cloud
+  - identifier: dim_product
+    kind:
+      action: materialization
+      target: table
+    dependencies:
+      - staging_salesforce_marketing_cloud
+      - dim_customer
+  - identifier: dim_voucher
+    kind:
+      action: materialization
+      target: table
+    dependencies:
+      - staging_salesforce_marketing_cloud
+  - identifier: fact_customer_activity
+    kind:
+      action: materialization
+      target: table
+    dependencies:
+      - staging_salesforce_marketing_cloud
+      - dim_customer
+  - identifier: salesforce_service_cloud_is_ready
+    kind:
+      action: assertion
+      target: assertion
+  - identifier: staging_salesforce_service_cloud
+    kind:
+      action: materialization
+      target: table
+    dependencies:
+      - salesforce_service_cloud_is_ready
+  - identifier: dim_customer
+    kind:
+      action: materialization
+      target: table
+    dependencies:
+      - staging_salesforce_service_cloud
+      - dim_date
+  - identifier: dim_customer_assertion
+    kind:
+      action: assertion
+      target: assertion
+    dependencies:
+      - dim_customer
+  - identifier: fact_newly_registered_customer
+    kind:
+      action: materialization
+      target: table
+    dependencies:
+      - staging_salesforce_service_cloud
+  - identifier: dim_customer_subscription
+    kind:
+      action: materialization
+      target: table
+    dependencies:
+      - dim_customer
+  - identifier: dim_customer_subscription_assertion
+    kind:
+      action: assertion
+      target: assertion
+    dependencies:
+      - dim_customer_subscription
+  - identifier: zend_desk_is_ready
+    kind:
+      action: assertion
+      target: assertion
+    dependencies:
+      - dim_date
+  - identifier: staging_zend_desk
+    kind:
+      action: materialization
+      target: table
+    dependencies:
+      - zend_desk_is_ready
+  - identifier: zend_desk_ticket_assignments
+    kind:
+      action: materialization
+      target: table
+    dependencies:
+      - staging_zend_desk
+  - identifier: zend_desk_ticket_comments
+    kind:
+      action: materialization
+      target: table
+    dependencies:
+      - staging_zend_desk
+  - identifier: zend_desk_ticket_priority_changes
+    kind:
+      action: materialization
+      target: table
+    dependencies:
+      - staging_zend_desk
+  - identifier: zend_desk_ticket_summary
+    kind:
+      action: materialization
+      target: table
+    dependencies:
+      - staging_zend_desk
+  - identifier: zend_desk_ticket_user_issues
+    kind:
+      action: materialization
+      target: table
+    dependencies:
+      - staging_zend_desk
+  - identifier: list_of_users_require_attention
+    kind:
+      action: materialization
+      target: table
+    dependencies:
+      - zend_desk_ticket_user_issues
+      - zend_desk_ticket_summary
+      - zend_desk_ticket_priority_changes
+      - zend_desk_ticket_comments
+      - zend_desk_ticket_assignments
+
+

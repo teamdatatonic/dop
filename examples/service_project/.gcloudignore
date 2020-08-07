@@ -1,0 +1,17 @@
+# Ignore the following when packaging & deploying using rsync
+docker-compose-dop.yml
+Makefile
+README.md
+.git
+.gitignore
+.gcloudignore
+**/__pycache__
+embedded_dop/source/.git
+embedded_dop/source/docs
+embedded_dop/source/examples
+embedded_dop/source/tests
+embedded_dop/source/.gitignore
+embedded_dop/source/README.md
+embedded_dop/source/LICENSE.md
+dbt_start/logs
+dbt_start/target
