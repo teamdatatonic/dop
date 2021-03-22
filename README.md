@@ -143,14 +143,14 @@ This is currently working in progress, however the instructions on what needs to
    DOP_GCR_PULL_SECRET_NAME:= {This maybe needed if the project storing the gcr images are not he same as where Cloud Composer runs, however this might be a better alternative https://medium.com/google-cloud/using-single-docker-repository-with-multiple-gke-projects-1672689f780c}
    ```
 1. Add the following Python Packages
-```
-dataclasses==0.7
-```
+    ```
+    dataclasses==0.7
+    ```
 1. Finally create a new node pool with the following k8 label
-```
-key: cloud.google.com/gke-nodepool
-value: kubernetes-task-pool
-```
+    ```
+    key: cloud.google.com/gke-nodepool
+    value: kubernetes-task-pool
+    ```
 
 ### Deployment
 See [Service Project README](examples/service_project/README.md#deploy-to-cloud-composer)
