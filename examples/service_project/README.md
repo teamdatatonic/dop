@@ -1,23 +1,23 @@
-The `service_project` directory can be used as a boilerplate to setup DOP on an existing GIT repository (the service project repository).
-You can copy and paste everything in this directory (including `.gcloudignore` and `.gitignore` as these are required for DOP to function correctly). 
-If you already have a `Makefile` or any other conflicting files, you may need to move things around by merging those files or moving i.e. the `Makefile` into `embedded_dop`
-
 Table of contents
 =================
 * [DOP Service Project Architecture](#dop-service-project-architecture)
 * [Boilerplate structure explained](#boilerplate-structure-explained)
- * [DBT Projects](#dbt-projects)
- * [The embedded_dop directory](#the-embedded_dop-directory)
-    * [executor_config](#executor_config)
-    * [orchestration](#orchestration)
-    * [source](#source)
- * [The Makefile](#the-makefile)
+   * [DBT Projects](#dbt-projects)
+   * [The embedded_dop directory](#the-embedded_dop-directory)
+      * [executor_config](#executor_config)
+      * [orchestration](#orchestration)
+      * [source](#source)
+   * [The Makefile](#the-makefile)
 * [Use DOP on Docker](#use-dop-on-docker)
 * [Deploy to Cloud Composer](#deploy-to-cloud-composer)
- * [Build Artifact](#build-artifact)
- * [Deploy](#deploy)
-    * [Important steps to follow for deploying to an existing Composer Cluster](#important-steps-to-follow-for-deploying-to-an-existing-composer-cluster)
+   * [Build Artifact](#build-artifact)
+   * [Deploy](#deploy)
+      * [Important steps to follow for deploying to an existing Composer Cluster](#important-steps-to-follow-for-deploying-to-an-existing-composer-cluster)
 * [DOP Orchestration Explained](#dop-orchestration-explained)
+
+The `service_project` directory can be used as a boilerplate to setup DOP on an existing GIT repository (the service project repository).
+You can copy and paste everything in this directory (including `.gcloudignore` and `.gitignore` as these are required for DOP to function correctly). 
+If you already have a `Makefile` or any other conflicting files, you may need to move things around by merging those files or moving i.e. the `Makefile` into `embedded_dop`
 
 ## DOP Service Project Architecture
 This explains how DOP functions and how it can be integrated into your existing git repositories
