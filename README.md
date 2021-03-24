@@ -35,6 +35,7 @@ Feature list
 - Third party components can be integrated such as orchestrating and running multiple DBT jobs
 - (TODO) Additional features such as exporting data into GCS buckets, SFTP servers, triggering API calls (i.e. Looker API to reload a PDT or dashboard) or ingesting data from other systems are in the future development plan of DOP. 
 
+**Please note that this project is heavily optimised to run with GCP (Google Cloud Platform) services which is our current focus. By focusing on one cloud provider, it allows us to really improve on end user experience through automation**
 
 ## A Typical DOP Orchestration Flow
 ![Typical DOP Flow](docs/a_typical_dop_orchestration_flow.png)
