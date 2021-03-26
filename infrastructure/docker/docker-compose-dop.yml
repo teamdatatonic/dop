@@ -1,8 +1,9 @@
 version: '3.7'
 services:
   postgres:
-    image: postgres:9.6
-    container_name: dop_db
+    image: postgres:13.2-alpine
+    container_name: dop_postgres
+    restart: always
     environment:
       - POSTGRES_USER=airflow
       - POSTGRES_PASSWORD=airflow
@@ -16,17 +17,18 @@ services:
     build: ${SERVICE_PROJECT_ABS_PATH}/embedded_dop/source/infrastructure/docker
     container_name: dop_webserver
     restart: always
+    entrypoint: ./script/entrypoint.sh
     depends_on:
-      - postgres
+        - postgres
     environment:
-      - LOAD_EX=n
-      - EXECUTOR=Local
+      - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres/airflow
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
       - AIRFLOW__CORE__LOGGING_LEVEL=INFO
       - GOOGLE_APPLICATION_CREDENTIALS=/secret/gcp-credentials/application_default_credentials.json
       - DOP_SANDBOX_ENVIRONMENT=true # set to true if running locally on a laptop, this enables certain features such as service account impersonation
 
       # The following environment environment variables need to be set on both the docker local environment as well as the composer environment
-      - DOP_SERVICE_PROJECT_PATH=/usr/local/airflow/dags/dop_service_project # The absolute directory of the service project path. Each DBT project in this path should be within their folder and must be valid. I.e. on Docker, this could be /usr/local/airflow/dags/dop/dbt-projects. On Composer this could be anywhere under the `/home/airflow/gcs/dags` or `/home/airflow/gcs/data` directory
+      - DOP_SERVICE_PROJECT_PATH=/opt/airflow/dags/dop_service_project # The absolute directory of the service project path. Each DBT project in this path should be within their folder and must be valid. I.e. on Docker, this could be /opt/airflow/dags/dop/dbt-projects. On Composer this could be anywhere under the `/home/airflow/gcs/dags` or `/home/airflow/gcs/data` directory
       - DOP_PROJECT_ID=${PROJECT_ID?project_id_is_undefined} # GCP project_id - to be used as the project where data will be consumed & persisted
       - DOP_LOCATION=${LOCATION?location_is_undefined} # GCP region - to be used to persist all data
       - DOP_INFRA_PROJECT_ID=${PROJECT_ID?project_id_is_undefined} # GCP infrastructure project id, for local development this isn't used so leaving it as the same as gcp service project id
@@ -35,16 +37,14 @@ services:
         max-size: 10m
         max-file: "3"
     volumes:
-      - ${SERVICE_PROJECT_ABS_PATH}/embedded_dop/source/infrastructure/docker/requirements.txt:/requirements.txt
-      - ${SERVICE_PROJECT_ABS_PATH}/embedded_dop/source/infrastructure/docker/requirements.composer.txt:/requirements.composer.txt
-      - ${SERVICE_PROJECT_ABS_PATH}:/usr/local/airflow/dags/dop_service_project
+      - ${SERVICE_PROJECT_ABS_PATH}:/opt/airflow/dags/dop_service_project
       - ~/.config/gcloud/application_default_credentials.json:/secret/gcp-credentials/application_default_credentials.json # mount application default credentials only so no keys as used
       # - ${SERVICE_PROJECT_ABS_PATH}/plugins:/usr/local/airflow/plugins
     ports:
       - "8082:8080"
     command: webserver
     healthcheck:
-      test: ["CMD-SHELL", "[ -f /usr/local/airflow/airflow-webserver.pid ]"]
+      test: ["CMD-SHELL", "[ -f /opt/airflow/airflow-webserver.pid ]"]
       interval: 30s
       timeout: 30s
       retries: 3

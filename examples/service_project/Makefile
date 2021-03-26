@@ -71,7 +71,7 @@ logs:
 	docker logs dop_webserver -f
 
 exec:
-	docker exec -it dop_webserver /bin/bash -c "source /exec_entrypoint.sh; /bin/bash"
+	docker exec -it dop_webserver /bin/bash -c "source ./script/exec_entrypoint.sh; /bin/bash"
 
 executor-example-dbt-run: validate
 	docker run --workdir "/home/dbtuser/dbt_start" --env DOP_PROJECT_ID=$(DOP_PROJECT_ID) --env DOP_LOCATION=$(DOP_LOCATION) dop-dbt:latest /bin/bash -c "pipenv run dbt run"
