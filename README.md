@@ -3,11 +3,6 @@ Table of contents
 * [What is DOP](#what-is-dop)
   * [Design Concept](#design-concept)
   * [A Typical DOP Orchestration Flow](#a-typical-dop-orchestration-flow)
-  * [Native Transformations](#native-transformations)
-     * [Materialization](#materialization)
-     * [Invocation](#invocation)
-     * [Assertion](#assertion)
-  * [Third party integrations](#third-party-integrations)
 * [Prerequisites - Run in Docker](#prerequisites---run-in-docker)
   * [For DOP Native Features](#for-dop-native-features)
   * [For DBT](#for-dbt)
@@ -23,68 +18,21 @@ Table of contents
 
 # What is DOP
 ## Design Concept
-DOP is designed to simplify the orchestration effort across many connected tasks through a simple YAML configuration file without the need to write any code.   
+DOP is designed to simplify the orchestration effort across many connected components using a configuration file without the need to write any code. 
+We have a vision to make orchestration easier to manage and more accessible to a wider group of people.
 
-A Task can be a single operation of any kind, For example, a native transformation (i.e. running SQL on a storage engine such as BigQuery), a DBT job or any other kinds of tasks defined by a pre-configured adaptor.   
-
-DOP utilises Apache Airflow's dependency management concept via a DAG (directed acyclic graph) with interactive visualisation capability.
-
-Feature list
-- Run native transformations (supporting only BigQuery at the moment)
-- YAML, SQL and some knowledge of Airflow User Interface are the only skills required
-- Third party components can be integrated such as orchestrating and running multiple DBT jobs
-- (TODO) Additional features such as exporting data into GCS buckets, SFTP servers, triggering API calls (i.e. Looker API to reload a PDT or dashboard) or ingesting data from other systems are in the future development plan of DOP. 
+Here are some of the key design concept behind DOP,
+- Built on top of Apache Airflow - Utilises it’s DAG capabilities with interactive GUI
+- DAGs without code - YAML + SQL
+- Native capabilities (SQL) - Materialisation, Assertion and Invocation
+- Extensible via plugins - DBT job, Spark job, Egress job, Triggers, etc
+- Easy to setup and deploy - fully automated dev environment and easy to deploy
+- Open Source - open sourced under the MIT license
 
 **Please note that this project is heavily optimised to run with GCP (Google Cloud Platform) services which is our current focus. By focusing on one cloud provider, it allows us to really improve on end user experience through automation**
 
 ## A Typical DOP Orchestration Flow
 ![Typical DOP Flow](docs/a_typical_dop_orchestration_flow.png)
-
-## Native Transformations
-Supported Native transformations
-
-### Materialization
-This is a transformation type where a single SQL query can be executed for materialization.
-
-Supports
-- Table
-- Stored Procedure (with dynamic arguments)
-- View
-- UDF (with dynamic arguments)
-- Schema Creation (for BQ, this is creating a dataset)
-
-Features
-- Delta management using a date/timestamp partitioned column
-- Automatic schema inference by query results with schema backwards compatibility checks and stops the execution when schema is backwards incompatible
-- A full refresh can be triggered to do a full rebuild from sources
-
-This is an example of a full refresh (overwriting existing schema & data), you can pass in a JSON payload using the trigger dag function in the Airflow UI
-
-![Trigger DAG](docs/trigger_dag.png)
-
-![Set DAG configuration options](docs/trigger_full_refresh.png)
-
-See how it works in the example DAG [here](examples/service_project/embedded_dop/orchestration/example_covid19)
-
-### Invocation
-This is a transformation type used to invoke things already existed such as an existing stored procedure. 
-
-Supports
-- Stored Procedure
-
-See how it works in the example DAG [here](examples/service_project/embedded_dop/orchestration/example_covid19)
-
-### Assertion
-This is a transformation type used to perform data quality checks before triggering downstream transformations or just for sanity checks
-
-Supports
-- Assertion
-- Assertion Sensor (TODO)
-
-See how it works in the example DAG [here](examples/service_project/embedded_dop/orchestration/example_covid19)
-
-## Third party integrations
-- Data Build Tool ([DBT](https://www.getdbt.com/))
 
 # Prerequisites - Run in Docker
 Note that all the IAM related prerequisites will be available as a Terraform template soon!
@@ -98,7 +46,7 @@ Note that all the IAM related prerequisites will be available as a Terraform tem
 1. Your GCP user / group will need to be given the `roles/iam.serviceAccountUser` and the `roles/iam.serviceAccountTokenCreator` role on the`development` project just for the `dop-docker-user` service account in order to enable [Service Account Impersonation](#service-account-impersonation).   
 ![Grant service account user](docs/grant_service_account_user.png)
 1. Authenticating with your GCP environment by typing in `gcloud auth application-default login` in your terminal and following instructions. Make sure you proceed to the stage where `application_default_credentials.json` is created on your machine (For windows users, make a note of the path, this will be required on a later stage)
-1. Clone this repository to your machine, please note that all commands listed in the  `Instructions for Setting things up` section will need to be executed under the top level repository path of the cloned repository.
+1. Clone this repository to your machine.
 
 ## For DBT
 1. Setup a service account for your GCP project called `dop-dbt-user` in `https://console.cloud.google.com/iam-admin/serviceaccounts?project=<your GCP project id>`
