@@ -25,6 +25,8 @@ The `service_project` directory can be used as a boilerplate to setup DOP on an 
 You can copy and paste everything in this directory (including `.gcloudignore` and `.gitignore` as these are required for DOP to function correctly). 
 If you already have a `Makefile` or any other conflicting files, you may need to move things around by merging those files or moving i.e. the `Makefile` into `embedded_dop`
 
+**Please note that this boilerplate is optimised for running DBT jobs inside DOP alongside native capabilities. If you don't use DBT, some automation may not work as expected.**  
+
 ## DOP Service Project Architecture
 This explains how DOP functions and how it can be integrated into your existing git repositories
 ![service_project_architecture](../../docs/dop_service_project_architecture.png)  
@@ -157,6 +159,18 @@ This task kind is designed to persist structure or data. Supported options are
     dependencies:
       <a list of one or more dependencies, defined by using task id>
 ```
+Targets
+- schema (for BQ, this is creating a dataset): create a schema
+- udf (with dynamic arguments): create a UDF from a SQL script
+- table: create a table by materializing the output from a SQL script
+- view: create a view from a SQL script
+- stored_procedure (with dynamic arguments): create a stored procedure from a SQL script
+
+Features
+- Delta management using a date/timestamp partitioned column
+- Automatic schema inference by query results with schema backwards compatibility checks and stops the execution when schema is backwards incompatible
+- A full refresh can be triggered to do a full rebuild from sources
+
 For the Materialization task, `identifer` must match to a SQL file located in the `/sql` folder.
 To see a live example on how to configure each task, go to [embedded_dop/orchestration/example_covid19/config.yaml](embedded_dop/orchestration/example_covid19/config.yaml). 
 
@@ -170,7 +184,14 @@ This task kind can be used to check data quality. Supported options are
     dependencies:
       <a list of one or more dependencies, defined by using task id>
 ```
-For the Assertion task, `identifer` must match to a SQL file located in the `/sql` folder.
+For the Assertion task, `identifer` must match to a SQL file located in the `/sql` folder and in the `SELECT` statement of the assertion SQL, it must return at least two columns as shown below,
+```
+SELECT 
+       <anything that can returna boolean>                             AS success,
+       <a text string to explain what this assertion is for>           AS description
+``` 
+The Airflow task will fail if `success` is evaluated as `false`
+
 To see a live example on how to configure each task, go to [embedded_dop/orchestration/example_covid19/config.yaml](embedded_dop/orchestration/example_covid19/config.yaml).
 
 #### Native Transformation - Invocation
@@ -212,3 +233,12 @@ Some of the ideas are
 Keep in mind try not to over engineer the solution, only try to split the DBT job if it makes sense to do so and solving a real issue (i.e. rebuilding the whole thing costs too much / takes too long or, without tags the job is unmaintainable and very hard to identify area of failures) 
 
 To see a live example on how to configure this, go to [embedded_dop/orchestration/example_covid19/config.yaml](embedded_dop/orchestration/example_covid19/config.yaml).
+
+### Full Refresh
+This is an example of a full refresh (overwriting existing schema & data), you can pass in a JSON payload using the trigger dag function in the Airflow GUI. 
+
+Please note that regardless of native transformations or DBT jobs (or any other task with full refresh support), using the `{"full_refresh" : true}` flag will force a full refresh on all applicable tasks.
+
+![Trigger DAG](../../docs/trigger_dag.png)
+
+![Set DAG configuration options](../../docs/trigger_full_refresh.png)
