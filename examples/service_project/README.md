@@ -20,6 +20,7 @@ Table of contents
       * [Native Transformation - Assertion](#native-transformation---assertion)
       * [Native Transformation - Invocation](#native-transformation---invocation)
       * [DBT Task](#dbt-task)
+   * [Full Refresh](#full-refresh)
 
 The `service_project` directory can be used as a boilerplate to setup DOP on an existing GIT repository (the service project repository).
 You can copy and paste everything in this directory (including `.gcloudignore` and `.gitignore` as these are required for DOP to function correctly). 
