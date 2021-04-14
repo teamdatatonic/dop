@@ -62,6 +62,29 @@ See [README in the service project setup](examples/service_project/README.md) an
 Once it's setup, you should see example DOP DAGs such as `dop__example_covid19`
 ![Airflow in Docker](docs/local_airflow_ui.png)
 
+### For developers only
+
+From the root of the repo run:
+```shell
+make build \
+    DOP_PROJECT_ID=<my project id> \
+    DOP_LOCATION=<my project location>
+```
+
+For subsequent runs run
+```shell
+make up \
+    DOP_PROJECT_ID=<my project id> \
+    DOP_LOCATION=<my project location>
+```
+
+To shut the local environment down run:
+```shell
+make down \
+    DOP_PROJECT_ID=<my project id> \
+    DOP_LOCATION=<my project location>
+```
+
 ## Run Airflow with DOP in Docker - Windows
 This is currently working in progress, however the instructions on what needs to be done is in the [Makefile](examples/service_project/Makefile)
 
