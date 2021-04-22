@@ -18,3 +18,5 @@ lib64
 
 # IDE
 .idea
+
+.env
