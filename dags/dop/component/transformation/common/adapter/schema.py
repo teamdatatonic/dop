@@ -34,7 +34,7 @@ def dbt_argument_validation_mapper(option, value):
 
 
 def dbt_validation_func(task):
-    allowed_options = ['run', 'test', 'docs']
+    allowed_options = ['run', 'test', 'docs generate']
     if task.kind.target not in allowed_options:
         raise DbtTaskException(
             f"DBT task.kind.target must be one of {allowed_options}, `{task.kind.target}` supplied"
