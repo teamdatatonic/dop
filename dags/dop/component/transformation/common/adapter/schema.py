@@ -45,9 +45,9 @@ def dbt_validation_func(task):
         raise DbtTaskException("DBT version must be supplied in the configuration")
 
     v_major, v_minor, v_patch = dbt_version.split(".")
-    if int(v_major) < 0 or Decimal(f"{v_minor}.{v_patch}") < Decimal("18.1"):
+    if int(v_major) < 0 or Decimal(f"{v_minor}.{v_patch}") < Decimal("19.1"):
         raise DbtTaskException(
-            f"DBT version must be >= 0.18.1, {dbt_version} is supplied"
+            f"DBT version must be >= 0.19.1, {dbt_version} is supplied"
         )
 
     # check DBT arguments, only allow certain arguments to be used

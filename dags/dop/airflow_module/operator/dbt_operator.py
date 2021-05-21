@@ -31,7 +31,7 @@ class DbtOperator(BashOperator):
     ):
         """
         :param dbt_project_name: the name for the dbt project name inline with what's defined in `.dbt-project-repos.json`
-        :param dbt_version: a supported DBT version, version must be >= 0.18.1
+        :param dbt_version: a supported DBT version, version must be >= 0.19.1
         :param args:
         :param kwargs: must contain the Task entity
         """
