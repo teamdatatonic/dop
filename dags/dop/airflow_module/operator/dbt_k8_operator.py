@@ -137,7 +137,8 @@ class DbtK8Operator(KubernetesPodOperator):
 
         cmd_for_additional_arguments = ""
 
-        if self.dbt_arguments:
+        # docs arguments are only used to copy files to GCS, not in the task execution
+        if self.dbt_arguments and self.target != "docs generate":
             cmd_for_additional_arguments = dbt_operator_helper.implode_arguments(
                 dbt_arguments=self.dbt_arguments
             )
@@ -150,3 +151,23 @@ class DbtK8Operator(KubernetesPodOperator):
         )
 
         return cmd_to_run_dbt
+
+    def post_execute(self, context, result=None):
+        """
+        This hook is triggered right after self.execute() is called.
+        It is passed the execution context and any results returned by the
+        operator.
+        """
+        if self.target == "docs generate":
+            gcs_bucket = dbt_operator_helper.extract_argument(
+                self.dbt_arguments, "--bucket"
+            )
+            if not gcs_bucket:
+                logging.warning("No bucket argument provided. Skipping copy to GCS")
+            gcs_path = dbt_operator_helper.extract_argument(
+                self.dbt_arguments, "--bucket-path", ""
+            )
+            project_path = f"./{self.dbt_project_name}"
+
+            logging.info(f"Copying dbt docs JSON files to GCS bucket {gcs_bucket}")
+            dbt_operator_helper.copy_docs_to_gcs(gcs_bucket, gcs_path, project_path)

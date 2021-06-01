@@ -116,6 +116,21 @@ tasks:
     dependencies:
       - assert_upstream_data_is_ready
 
+  - identifier: dbt_start_docs
+    kind:
+      action: dbt
+      target: docs generate
+    options:
+      project: dbt_start
+      version: 0.18.1
+      arguments:
+        - option: --bucket
+          value: DBT_DOCS_BUCKET
+        - option: --bucket-path
+          value: DBT_DOCS_PATH
+    dependencies:
+      - stg_covid19
+
   - identifier: dbt_start_staging
     kind:
       action: dbt
