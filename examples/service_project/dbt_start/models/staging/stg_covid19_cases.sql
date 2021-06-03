@@ -6,7 +6,7 @@
   )
 }}
 
-with covic_cases as (
+with covid_cases as (
 
     select * REPLACE(CAST(new_recovered AS INT64) as new_recovered) from `{{ source('jaffle_shop', 'covid19_open_data') }}`
     {% if is_incremental() %}
@@ -14,4 +14,4 @@ with covic_cases as (
     {% endif %}
 
 )
-select * from covic_cases
+select * from covid_cases

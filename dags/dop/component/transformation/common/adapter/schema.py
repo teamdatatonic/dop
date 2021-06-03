@@ -8,66 +8,79 @@ from decimal import Decimal
 
 from marshmallow import validate, post_load, Schema, fields
 
-TASK_KIND_MATERI = 'materialization'
-TASK_KIND_ASSERT = 'assertion'
-TASK_KIND_INVOKE = 'invocation'
-TASK_KIND_DBT = 'dbt'
+TASK_KIND_MATERI = "materialization"
+TASK_KIND_ASSERT = "assertion"
+TASK_KIND_INVOKE = "invocation"
+TASK_KIND_DBT = "dbt"
 
 NATIVE_TASK_KIND = [TASK_KIND_MATERI, TASK_KIND_ASSERT, TASK_KIND_INVOKE]
 CUSTOM_TASK_KIND = [TASK_KIND_DBT]
 
 
 def dbt_argument_validation_mapper(option, value):
-    allowed_options = ['-m', '-x', '--fail-fast', '--threads', '--exclude', '--full-refresh']
+    allowed_options = [
+        "-m",
+        "-x",
+        "--fail-fast",
+        "--threads",
+        "--exclude",
+        "--full-refresh",
+    ]
     if option not in allowed_options:
         raise DbtTaskException(
-            f'Supported DBT command line argument options are: {allowed_options}, `{option}` supplied'
+            f"Supported DBT command line argument options are: {allowed_options}, `{option}` supplied"
         )
 
 
 def dbt_validation_func(task):
-    allowed_options = ['run', 'test']
+    allowed_options = ["run", "test"]
     if task.kind.target not in allowed_options:
-        raise DbtTaskException(f'DBT task.kind.target must be one of {allowed_options}, `{task.kind.target}` supplied')
+        raise DbtTaskException(
+            f"DBT task.kind.target must be one of {allowed_options}, `{task.kind.target}` supplied"
+        )
 
     # check version
-    dbt_version = task.options.get('version')
+    dbt_version = task.options.get("version")
     if not dbt_version:
-        raise DbtTaskException('DBT version must be supplied in the configuration')
+        raise DbtTaskException("DBT version must be supplied in the configuration")
 
-    v_major, v_minor, v_patch = dbt_version.split('.')
-    if int(v_major) < 0 or Decimal(f'{v_minor}.{v_patch}') < Decimal('18.1'):
-        raise DbtTaskException(f'DBT version must be >= 0.18.1, {dbt_version} is supplied')
+    v_major, v_minor, v_patch = dbt_version.split(".")
+    if int(v_major) < 0 or Decimal(f"{v_minor}.{v_patch}") < Decimal("18.1"):
+        raise DbtTaskException(
+            f"DBT version must be >= 0.18.1, {dbt_version} is supplied"
+        )
 
     # check DBT arguments, only allow certain arguments to be used
-    arguments = task.options.get('arguments')
+    arguments = task.options.get("arguments")
 
     if arguments:
         for argument in arguments:
-            dbt_argument_validation_mapper(option=argument.get('option'), value=argument.get('value'))
+            dbt_argument_validation_mapper(
+                option=argument.get("option"), value=argument.get("value")
+            )
 
 
 def materialization_validation_func(task):
-    allowed_options = ['table', 'view', 'udf', 'stored_procedure', 'schema']
+    allowed_options = ["table", "view", "udf", "stored_procedure", "schema"]
     if task.kind.target not in allowed_options:
         raise MaterializationTaskException(
-            f'Materialization task.kind.target must be one of {allowed_options}, `{task.kind.target}`supplied'
+            f"Materialization task.kind.target must be one of {allowed_options}, `{task.kind.target}`supplied"
         )
 
 
 def assertion_validation_func(task):
-    allowed_options = ['assertion', 'assertion_sensor']
+    allowed_options = ["assertion", "assertion_sensor"]
     if task.kind.target not in allowed_options:
         raise AssertionTaskException(
-            f'Assertion task.kind.target must be one of {allowed_options}, {task.kind.target} supplied'
+            f"Assertion task.kind.target must be one of {allowed_options}, {task.kind.target} supplied"
         )
 
 
 def invocation_validation_func(task):
-    allowed_options = ['stored_procedure']
+    allowed_options = ["stored_procedure"]
     if task.kind.target not in allowed_options:
         raise InvocationTaskException(
-            f'Invocation task.kind.target must be one of {allowed_options}, {task.kind.target} supplied'
+            f"Invocation task.kind.target must be one of {allowed_options}, {task.kind.target} supplied"
         )
 
 
@@ -105,11 +118,13 @@ class InvocationTaskException(InvalidDagConfig):
 
 
 class IsValidCron(validate.Validator):
-    default_message = 'Not a valid Cron Expression'
+    default_message = "Not a valid Cron Expression"
 
     def __call__(self, value) -> typing.Any:
-        message = f'The schedule_interval expression `{value}` must be a valid CRON expression: ' \
-                  'validate it here https://crontab.guru/'
+        message = (
+            f"The schedule_interval expression `{value}` must be a valid CRON expression: "
+            "validate it here https://crontab.guru/"
+        )
         if not croniter.is_valid(value):
             raise validate.ValidationError(message)
 
@@ -123,8 +138,10 @@ class Partitioning:
 
 
 class PartitioningSchema(Schema):
-    field = fields.String(validate=validate.OneOf(['date']))
-    data_type = fields.String(validate=validate.OneOf(['timestamp', 'datetime', 'date']))
+    field = fields.String(validate=validate.OneOf(["date"]))
+    data_type = fields.String(
+        validate=validate.OneOf(["timestamp", "datetime", "date"])
+    )
 
 
 @dataclass
@@ -135,7 +152,9 @@ class Kind:
 
 class KindSchema(Schema):
     action = fields.String(
-        validate=validate.OneOf([TASK_KIND_MATERI, TASK_KIND_ASSERT, TASK_KIND_INVOKE, TASK_KIND_DBT])
+        validate=validate.OneOf(
+            [TASK_KIND_MATERI, TASK_KIND_ASSERT, TASK_KIND_INVOKE, TASK_KIND_DBT]
+        )
     )
     target = fields.String()
 
@@ -185,12 +204,21 @@ class DagConfigSchema(Schema):
     def make_dag_config(self, data, **kwargs):
         data_with_objects = copy.deepcopy(data)
         tasks = []
-        for task in data_with_objects['tasks']:
-            task['kind'] = Kind(**task['kind'])
-            task['database'] = task['database'] if 'database' in task else data_with_objects['database']
-            task['schema'] = task['schema'] if 'schema' in task else data_with_objects['schema']
-            task['partitioning'] = Partitioning(**task['partitioning']) if task['partitioning'] is not None \
-                else task['partitioning']
+        for task in data_with_objects["tasks"]:
+            task["kind"] = Kind(**task["kind"])
+            task["database"] = (
+                task["database"]
+                if "database" in task
+                else data_with_objects["database"]
+            )
+            task["schema"] = (
+                task["schema"] if "schema" in task else data_with_objects["schema"]
+            )
+            task["partitioning"] = (
+                Partitioning(**task["partitioning"])
+                if task["partitioning"] is not None
+                else task["partitioning"]
+            )
 
             task_entity = Task(**task)
 
@@ -201,7 +229,7 @@ class DagConfigSchema(Schema):
 
             tasks.append(task_entity)
 
-        data_with_objects['tasks'] = tasks
+        data_with_objects["tasks"] = tasks
         return DagConfig(**data_with_objects)
 
 

@@ -143,5 +143,3 @@ tasks:
       - zend_desk_ticket_priority_changes
       - zend_desk_ticket_comments
       - zend_desk_ticket_assignments
-
-
