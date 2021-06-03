@@ -124,7 +124,7 @@ class Partitioning:
 
 class PartitioningSchema(Schema):
     field = fields.String(validate=validate.OneOf(['date']))
-    data_type = fields.String(validate=validate.OneOf(['timestamp', 'datatime', 'date']))
+    data_type = fields.String(validate=validate.OneOf(['timestamp', 'datetime', 'date']))
 
 
 @dataclass
