@@ -122,7 +122,7 @@ tasks:
       target: docs generate
     options:
       project: dbt_start
-      version: 0.18.1
+      version: 0.9.1
       arguments:
         - option: --bucket
           value: DBT_DOCS_BUCKET
