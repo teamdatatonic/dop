@@ -217,7 +217,7 @@ You don't have to worry about this as a user because the user experience on this
       target: <test|run>
     options:
       project: <the project folder name of DBT in the service repository, for the example DAG this can be either `dbt_start` or `dbt_start_two`>
-      version: <the DBT version at or above 0.18.1. Please note this maybe deprecated in newer versions so that only one DBT version needs to be maintained>
+      version: <the DBT version at or above 0.19.1. Please note this maybe deprecated in newer versions so that only one DBT version needs to be maintained>
       arguments:
         - option: <a valid dbt argument, '-m', '-x', '--fail-fast', '--threads', '--exclude', '--full-refresh' are currently supported>
           value: <a value goes with the argument>

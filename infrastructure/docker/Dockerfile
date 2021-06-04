@@ -5,8 +5,9 @@ ARG AIRFLOW_HOME=/opt/airflow
 ENV AIRFLOW_HOME=${AIRFLOW_HOME}
 
 USER root
-# Install dos2unix
-RUN apt-get update && apt-get install dos2unix -y
+# Install dos2unix used to resolve windows line ending issues
+# And gcc used in dbt packages compilation
+RUN apt-get update && apt-get install dos2unix gcc -y
 
 USER airflow
 
