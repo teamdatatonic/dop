@@ -8,11 +8,18 @@ params:
     - 2
     - 3
 tasks:
+  - identifier: assert_upstream_data_is_ready
+    kind:
+      action: assertion
+      target: assertion
+
   - identifier: create_schema_dop_sandbox_us
     kind:
       action: materialization
       target: schema
     schema: dop_sandbox_us
+    dependencies:
+      - assert_upstream_data_is_ready
 
   - identifier: udf_empty_str_as_null
     kind:
@@ -38,13 +45,6 @@ tasks:
     dependencies:
       - create_schema_dop_sandbox_us
 
-  - identifier: assert_upstream_data_is_ready
-    kind:
-      action: assertion
-      target: assertion
-    dependencies:
-      - udf_empty_str_as_null
-
   - identifier: stg_covid19
     kind:
       action: materialization
@@ -53,7 +53,7 @@ tasks:
       field: date
       data_type: date
     dependencies:
-      - assert_upstream_data_is_ready
+      - create_schema_dop_sandbox_us
 
   - identifier: covid19_by_country
     kind:
@@ -108,15 +108,13 @@ tasks:
     dependencies:
       - sp_all_countries_and_regions
 
-  - identifier: dbt_start_test
+  - identifier: create_schema_dbt_start
     kind:
-      action: dbt
-      target: test
-    options:
-      project: dbt_start
-      version: 0.19.1
+      action: materialization
+      target: schema
+    schema: dbt_start
     dependencies:
-      - stg_covid19
+      - assert_upstream_data_is_ready
 
   - identifier: dbt_start_staging
     kind:
@@ -129,7 +127,7 @@ tasks:
         - option: -m
           value: staging
     dependencies:
-      - dbt_start_test
+      - create_schema_dbt_start
 
   - identifier: dbt_start_aggregation_a
     kind:
@@ -156,3 +154,13 @@ tasks:
           value: aggregation_b
     dependencies:
       - dbt_start_aggregation_a
+
+  - identifier: dbt_start_test
+    kind:
+      action: dbt
+      target: test
+    options:
+      project: dbt_start
+      version: 0.19.1
+    dependencies:
+      - dbt_start_aggregation_b
