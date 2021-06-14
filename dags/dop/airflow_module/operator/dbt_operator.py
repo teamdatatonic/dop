@@ -1,12 +1,13 @@
 import logging
 import os
-
 from typing import List, Dict
 
 from airflow.operators.bash_operator import BashOperator
 from airflow.sensors.base_sensor_operator import apply_defaults
-from dop.component.configuration.env import env_config
 from dop.airflow_module.operator import dbt_operator_helper
+from dop.component.configuration.env import env_config
+
+DBT_RUN_RESULTS_PATH = "target/run_results.json"
 
 
 class DbtOperator(BashOperator):
@@ -132,4 +133,16 @@ class DbtOperator(BashOperator):
                 cmd_to_run_dbt,
                 cmd_to_remove_tmp_dir,
             ]
+        )
+
+    def post_execute(self, context, result=None):
+        """
+        This hook is triggered right after self.execute() is called.
+        It is passed the execution context and any results returned by the
+        operator.
+        """
+        dbt_operator_helper.save_run_results_in_bq(
+            env_config.project_id,
+            self.dbt_project_name,
+            f"{self.dbt_project_path}/{DBT_RUN_RESULTS_PATH}",
         )

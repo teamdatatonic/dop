@@ -8,6 +8,11 @@ from airflow.sensors.base_sensor_operator import apply_defaults
 from dop.component.configuration.env import env_config
 from dop.airflow_module.operator import dbt_operator_helper
 
+
+DBT_USER = "dbtuser"
+DBT_RUN_RESULTS_PATH = "target/run_results.json"
+
+
 # See: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#affinity-and-anti-affinity
 node_pool_affinity = {
     "nodeAffinity": {
@@ -146,7 +151,20 @@ class DbtK8Operator(KubernetesPodOperator):
             f"pipenv run dbt --no-use-colors {self.target} --project-dir ./{self.dbt_project_name}"
             f" --vars {dbt_operator_helper.parsed_cmd_airflow_context_vars(context=context)}"
             f" {cmd_for_additional_arguments}"
-            f" {full_refresh_cmd}"
+            f" {full_refresh_cmd};"
+            f" gsutil cp /home/{DBT_USER}/{self.dbt_project_name}/{DBT_RUN_RESULTS_PATH} gs://{os.getenv('GCS_BUCKET')}/dbt/{DBT_RUN_RESULTS_PATH}"
         )
 
         return cmd_to_run_dbt
+
+    def post_execute(self, context, result=None):
+        """
+        This hook is triggered right after self.execute() is called.
+        It is passed the execution context and any results returned by the
+        operator.
+        """
+        dbt_operator_helper.save_run_results_in_bq(
+            env_config.project_id,
+            self.dbt_project_name,
+            f"gs://{os.getenv('GCS_BUCKET')}/dbt/{DBT_RUN_RESULTS_PATH}",
+        )
