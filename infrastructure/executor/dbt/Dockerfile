@@ -1,9 +1,18 @@
-FROM python:3.6-slim-buster AS prod
+FROM python:3.6-slim-buster
 
 ARG DBT_HOME=/home/dbtuser
 ARG BUILD_DIR=/tmp/dbt_build_tmp
 
 RUN apt-get update && apt-get install -y git
+
+# https://cloud.google.com/sdk/docs/install#deb
+RUN apt-get update && \
+    apt-get install -y curl gnupg && \
+    echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] http://packages.cloud.google.com/apt cloud-sdk main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list && \
+    curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key --keyring /usr/share/keyrings/cloud.google.gpg  add - && \
+    apt-get update -y && \
+    apt-get install google-cloud-sdk -y
+
 RUN set -ex \
     && pip install PyYAML==5.3.1 \
     && pip install pipenv

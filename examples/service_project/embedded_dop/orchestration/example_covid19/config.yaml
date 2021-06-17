@@ -116,21 +116,6 @@ tasks:
     dependencies:
       - assert_upstream_data_is_ready
 
-  - identifier: dbt_start_docs
-    kind:
-      action: dbt
-      target: docs generate
-    options:
-      project: dbt_start
-      version: 0.9.1
-      arguments:
-        - option: --bucket
-          value: DBT_DOCS_BUCKET
-        - option: --bucket-path
-          value: DBT_DOCS_PATH
-    dependencies:
-      - stg_covid19
-
   - identifier: dbt_start_staging
     kind:
       action: dbt
@@ -179,3 +164,18 @@ tasks:
       version: 0.19.1
     dependencies:
       - dbt_start_aggregation_b
+
+  - identifier: dbt_start_docs
+    kind:
+      action: dbt
+      target: docs generate
+    options:
+      project: dbt_start
+      version: 0.19.1
+      arguments:
+        - option: --bucket
+          value: datatonic-uk-dop-dev-diego
+        - option: --bucket-path
+          value: dbt
+    dependencies:
+      - dbt_start_test
