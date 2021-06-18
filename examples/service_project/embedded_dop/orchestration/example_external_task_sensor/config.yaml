@@ -1,0 +1,22 @@
+enabled: true
+schedule_interval: "0 * * * *"
+timezone: "Europe/London"
+schema: sample_dataset
+
+tasks:
+  - identifier: external_task_sensor
+    kind:
+      action: airflow_operator
+      target: airflow.sensors.external_task_sensor.ExternalTaskSensor
+    options:
+      arguments:
+        external_dag_id: dop__example_upstream_dependency
+        external_task_id: upstream_dependency
+        execution_delta: !!python/object/apply:datetime.timedelta [0, 300]
+
+  - identifier: dummy_operator
+    kind:
+      action: airflow_operator
+      target: airflow.operators.dummy_operator.DummyOperator
+    dependencies:
+      - external_task_sensor
