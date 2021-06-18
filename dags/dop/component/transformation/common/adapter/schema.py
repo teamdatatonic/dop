@@ -11,6 +11,7 @@ from marshmallow import validate, post_load, Schema, fields
 TASK_KIND_MATERI = "materialization"
 TASK_KIND_ASSERT = "assertion"
 TASK_KIND_INVOKE = "invocation"
+TASK_KIND_AIRFLOW_OPERATOR = "airflow_operator"
 TASK_KIND_DBT = "dbt"
 
 NATIVE_TASK_KIND = [TASK_KIND_MATERI, TASK_KIND_ASSERT, TASK_KIND_INVOKE]
@@ -153,7 +154,13 @@ class Kind:
 class KindSchema(Schema):
     action = fields.String(
         validate=validate.OneOf(
-            [TASK_KIND_MATERI, TASK_KIND_ASSERT, TASK_KIND_INVOKE, TASK_KIND_DBT]
+            [
+                TASK_KIND_MATERI,
+                TASK_KIND_ASSERT,
+                TASK_KIND_INVOKE,
+                TASK_KIND_DBT,
+                TASK_KIND_AIRFLOW_OPERATOR,
+            ]
         )
     )
     target = fields.String()

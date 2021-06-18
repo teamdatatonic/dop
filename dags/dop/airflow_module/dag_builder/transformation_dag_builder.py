@@ -1,11 +1,13 @@
+import inspect
 import logging
 import os
 import pendulum
 import sys
 
+from pydoc import locate
 from typing import Dict, Any, List
-
 from airflow.models import Variable
+from airflow.models.baseoperator import BaseOperator
 
 # Add DOP DAG root path to PYTHONPATH
 sys.path.append(
@@ -37,6 +39,21 @@ from dop.component.configuration.env import env_config  # noqa: E402
 SQL_PATH_TEMPLATE = "{path}/sql/{task_name}.sql"
 
 
+def locate_operator_class(namespaced_class: str):
+    operator_class = locate(namespaced_class)
+
+    if operator_class is None:
+        raise RuntimeError(f"{namespaced_class} not found")
+
+    if not inspect.isclass(operator_class):
+        raise RuntimeError(f"{namespaced_class} is not a valid class")
+
+    if not issubclass(operator_class, BaseOperator):
+        raise RuntimeError(f"{namespaced_class} is not a valid operator")
+
+    return operator_class
+
+
 def select_operator(task: schema.Task):
     task_type_operator_mapper = {
         schema.TASK_KIND_MATERI: common_operators.MaterializationOperator,
@@ -49,6 +66,11 @@ def select_operator(task: schema.Task):
         task_type_operator_mapper[schema.TASK_KIND_DBT] = dbt_operator.DbtOperator
     else:
         task_type_operator_mapper[schema.TASK_KIND_DBT] = dbt_k8_operator.DbtK8Operator
+
+    if task.kind.action == schema.TASK_KIND_AIRFLOW_OPERATOR:
+        task_type_operator_mapper[
+            schema.TASK_KIND_AIRFLOW_OPERATOR
+        ] = locate_operator_class(task.kind.target)
 
     return task_type_operator_mapper[task.kind.action]
 
@@ -222,7 +244,7 @@ def init_transformations(path_to_dags, config_extension="yaml") -> List[Dict[str
                 {
                     "transformation": t,
                     "path_to_transformation": t_path,
-                    "config": yaml_to_dict(y=config_fp.read()),
+                    "config": yaml_to_dict(config_fp.read()),
                 }
             )
 
@@ -318,7 +340,21 @@ def build(**kwargs):
                     provide_context=True,
                 )
                 transformation_tasks[task.identifier] = transformation_task
+            elif task.kind.action == schema.TASK_KIND_AIRFLOW_OPERATOR:
+                if task.options.get("arguments"):
+                    _kwargs = task.options.get("arguments")
+                else:
+                    _kwargs = {}
 
+                transformation_task = operator(
+                    dag=dag,
+                    task_id=task.identifier,
+                    task=task,
+                    params=template_params,
+                    provide_context=True,
+                    **_kwargs,
+                )
+                transformation_tasks[task.identifier] = transformation_task
             else:
                 raise NotImplementedError(f"Task Kind {task.kind} is not implemented")
 

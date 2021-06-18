@@ -1,0 +1,10 @@
+enabled: true
+schedule_interval: "55 * * * *"
+timezone: "Europe/London"
+schema: sample_dataset
+
+tasks:
+  - identifier: upstream_dependency
+    kind:
+      action: airflow_operator
+      target: airflow.operators.dummy_operator.DummyOperator
