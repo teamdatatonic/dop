@@ -1,13 +1,17 @@
 import inspect
 import logging
 import os
-import pendulum
 import sys
-
+from collections import defaultdict
 from pydoc import locate
 from typing import Dict, Any, List
-from airflow.models import Variable
+
+import pendulum
+from airflow.models import Variable, DagRun
 from airflow.models.baseoperator import BaseOperator
+from airflow.operators.dummy_operator import DummyOperator
+from airflow.operators.python_operator import BranchPythonOperator
+from airflow.utils.state import State
 
 # Add DOP DAG root path to PYTHONPATH
 sys.path.append(
@@ -254,6 +258,7 @@ def init_transformations(path_to_dags, config_extension="yaml") -> List[Dict[str
 def build(**kwargs):
     dags = []
     exceptions = []
+    dbt_dags = defaultdict(set)
 
     for details in init_transformations(path_to_dags=kwargs["path_to_dags"]):
         logging.debug(f"### Dag Details: {details}")
@@ -303,6 +308,12 @@ def build(**kwargs):
             "params": dag_config.params,
         }
 
+        # Indicates if the current DAG includes any DBT task
+        has_dbt_tasks = False
+        # If the DAG includes DBT tasks, projects where the tasks will be run
+        # Used to ensure that only one DBT task is running per project
+        dbt_projects = set()
+
         for task in dag_config.tasks:
             logging.debug(f"### task: {task.__dict__}")
             template_params["task"] = task.__dict__
@@ -329,9 +340,10 @@ def build(**kwargs):
                 )
                 transformation_tasks[task.identifier] = transformation_task
             elif task.kind.action == schema.TASK_KIND_DBT:
+                dbt_project_name = task.options["project"]
                 transformation_task = operator(
                     dag=dag,
-                    dbt_project_name=task.options["project"],
+                    dbt_project_name=dbt_project_name,
                     dbt_version=task.options["version"],
                     dbt_arguments=task.options.get("arguments"),
                     task_id=task.identifier,
@@ -340,6 +352,9 @@ def build(**kwargs):
                     provide_context=True,
                 )
                 transformation_tasks[task.identifier] = transformation_task
+                has_dbt_tasks = True
+                dbt_dags[dbt_project_name].add(dag_id)
+                dbt_projects.add(dbt_project_name)
             elif task.kind.action == schema.TASK_KIND_AIRFLOW_OPERATOR:
                 if task.options.get("arguments"):
                     _kwargs = task.options.get("arguments")
@@ -370,7 +385,64 @@ def build(**kwargs):
                     >> transformation_tasks[task.identifier]
                 )
 
+        if has_dbt_tasks:
+            # Add extra tasks to the DAG to ensure that only one DBT task
+            # is running per project
+            check_running_dags = BranchPythonOperator(
+                dag=dag,
+                task_id="check_running_dags",
+                python_callable=check_running_dags_branching,
+                op_kwargs={
+                    "dbt_dags": dbt_dags,
+                    "projects": dbt_projects,
+                    "dag_id": dag_id,
+                },
+            )
+
+            start_execution = DummyOperator(dag=dag, task_id="start_execution")
+            skip_execution = DummyOperator(dag=dag, task_id="skip_execution")
+            check_running_dags >> [skip_execution, start_execution]
+
+            # Add start_execution upstream dependency to all tasks without upstream tasks
+            for task in transformation_tasks.values():
+                if not task.upstream_task_ids:
+                    start_execution >> task
+
     return dags, exceptions
+
+
+def check_running_dags_branching(dbt_dags: dict, projects: set, dag_id: str):
+    """
+    Check if there is any other DAG currently running in the same project(s) of the given DAG
+
+    dbt_dags is a dict where the keys are DBT projects and the values the DAGs using the project
+    {
+        "project1: ["dag1", "dag2"],
+        "project2: ["dag3"]
+    }
+
+    DAGS using the same project are extracted from dbt_dags and for each of them is checked
+    if there is any running instance. If true execution is stopped
+
+    :param dbt_dags: Dict of projects and DAGs
+    :param projects: Set with the project used by the current DAG
+    :param dag_id: Name of the current DAG
+    """
+    dags_to_check = set()
+    for project in projects:
+        project_dags = dbt_dags[project]
+        project_dags.discard(dag_id)
+        if project_dags:
+            dags_to_check.update(project_dags)
+    logging.info(f"Dags with DBT steps in the same projects: {dags_to_check}")
+    for dag in dags_to_check:
+        logging.info(f"Checking DAG {dag}")
+        dag_runs = DagRun.find(dag_id=dag, state=State.RUNNING)
+        if dag_runs:
+            logging.info(f"DAG {dag} is running, skipping execution")
+            return "skip_execution"
+    logging.info("No other DAGs running in the same projects")
+    return "start_execution"
 
 
 dags, exceptions = build(path_to_dags=env_config.orchestration_path)
