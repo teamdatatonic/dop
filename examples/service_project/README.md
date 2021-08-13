@@ -120,7 +120,7 @@ It is **very important** to consider using a tag made on the DOP source reposito
 ```
 make deploy DEPLOY_BUCKET_NAME={} DOP_ARTIFACT_ID={}
 ```
-`DEPLOY_BUCKET_NAME`: This is the bucket name for Cloud Composer i.e. `us-central1-dop-sandbox-us-xxxxxxxx-bucket`   
+`DEPLOY_BUCKET_NAME`: This is the bucket name for Cloud Composer i.e. `us-central1-dop-sandbox-us-xxxxxxxx-bucket`
 `DOP_ARTIFACT_ID`: Use the most recent artifact id produced by the `Build Artifact` step or any historical artifact ids to rollback
 
 #### Important steps to follow for deploying to an existing Composer Cluster
