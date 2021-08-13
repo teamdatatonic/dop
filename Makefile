@@ -1,5 +1,10 @@
 .PHONY: build down up
 
+# Defaults to the latest
+AIRFLOW_VERSION := 1.10.15
+
+include .env
+export
 DOP_PROJECT_ID := #{REPLACE WITH A GCP PROJECT ID WHERE DOP WILL EXECUTE ALL JOBS}
 DOP_LOCATION := #{REPLACE WITH A GCP REGION WHERE DATA WILL BE PERSISTED BY DOP}
 
@@ -12,6 +17,9 @@ validate:
 	exit 1; \
 	elif [ -z ${DOP_LOCATION} ]; then \
 	echo "DOP_LOCATION must be defined. Aborting";\
+	exit 1; \
+	elif [ -z ${AIRFLOW_VERSION} ]; then \
+	echo "AIRFLOW_VERSION must be defined. Aborting";\
 	exit 1; \
 	fi
 

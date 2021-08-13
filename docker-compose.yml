@@ -1,7 +1,7 @@
 version: '3.7'
 services:
   postgres:
-    image: postgres:13-alpine
+    image: postgres:13.2-alpine
     container_name: dop_postgres
     restart: always
     environment:
@@ -14,10 +14,9 @@ services:
         max-file: "3"
 
   webserver:
-    build: infrastructure/docker
+    build: infrastructure/docker/composer_${AIRFLOW_VERSION}
     container_name: dop_webserver
     restart: always
-    entrypoint: ./script/entrypoint.sh
     depends_on:
         - postgres
     environment:

@@ -14,7 +14,7 @@ services:
         max-file: "3"
 
   webserver:
-    build: ${SERVICE_PROJECT_ABS_PATH}/embedded_dop/source/infrastructure/docker
+    build: composer_${AIRFLOW_VERSION}
     container_name: dop_webserver
     restart: always
     entrypoint: ./script/entrypoint.sh
