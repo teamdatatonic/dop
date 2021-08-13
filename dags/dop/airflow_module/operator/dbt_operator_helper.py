@@ -43,6 +43,24 @@ def parsed_cmd_airflow_context_vars(context):
     return cmd
 
 
+def extract_argument(dbt_arguments: list, name: str, default_value: str = None):
+    """
+    Extract an argument from the argument list. Format is
+    [
+        {'option': 'OPTION1', 'value': 'VALUE1'},
+        {'option': 'OPTION2', 'value': 'VALUE2'},
+        ...
+    ]
+
+    :param dbt_arguments: Argument list
+    :param name: Argument to extract
+    :param default_value: Default value to return if not present
+    """
+    return next(
+        (arg.get("value") for arg in dbt_arguments if arg.get("option") == name),
+        default_value,
+    )
+
 def save_run_results_in_bq(project_id, dbt_project_name, run_results_path):
     """
     Load run_results json file in BigQuery. As a first step is checked if the table
@@ -111,3 +129,4 @@ def _parse_gcs_url(gsurl):
     bucket = parsed_url.netloc
     blob = parsed_url.path.lstrip("/")
     return bucket, blob
+
