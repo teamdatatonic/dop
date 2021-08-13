@@ -154,7 +154,8 @@ class DbtK8Operator(KubernetesPodOperator):
             f"pipenv run dbt --no-use-colors {self.target} --project-dir ./{self.dbt_project_name}"
             f" --vars {dbt_operator_helper.parsed_cmd_airflow_context_vars(context=context)}"
             f" {cmd_for_additional_arguments}"
-            f" {full_refresh_cmd}"
+            f" {full_refresh_cmd};"
+            f" gsutil cp /home/{DBT_USER}/{self.dbt_project_name}/{DBT_RUN_RESULTS_PATH} gs://{os.getenv('GCS_BUCKET')}/dbt/{DBT_RUN_RESULTS_PATH}"
         )
 
         if self.target == "docs generate":
@@ -188,3 +189,15 @@ class DbtK8Operator(KubernetesPodOperator):
                 f"gsutil cp {doc_file_path} gs://{gcs_bucket}/{gcs_path}/{doc_file}"
             )
         return ";".join(command)
+
+    def post_execute(self, context, result=None):
+        """
+        This hook is triggered right after self.execute() is called.
+        It is passed the execution context and any results returned by the
+        operator.
+        """
+        dbt_operator_helper.save_run_results_in_bq(
+            env_config.project_id,
+            self.dbt_project_name,
+            f"gs://{os.getenv('GCS_BUCKET')}/dbt/{DBT_RUN_RESULTS_PATH}",
+        )

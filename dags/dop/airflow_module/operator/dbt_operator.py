@@ -12,6 +12,7 @@ from dop.component.configuration.env import env_config
 # https://docs.getdbt.com/reference/commands/cmd-docs
 DBT_DOC_FILES = ["index.html", "manifest.json", "catalog.json"]
 DBT_DOC_FOLDER = "target"
+DBT_RUN_RESULTS_PATH = "target/run_results.json"
 
 
 class DbtOperator(BashOperator):
@@ -159,6 +160,12 @@ class DbtOperator(BashOperator):
             dbt_operator_helper.copy_docs_to_gcs(
                 gcs_bucket, gcs_path, self.dbt_project_path
             )
+        
+        dbt_operator_helper.save_run_results_in_bq(
+            env_config.project_id,
+            self.dbt_project_name,
+            f"{self.dbt_project_path}/{DBT_RUN_RESULTS_PATH}",
+        )
 
     def copy_docs_to_gcs(self, bucket: str, bucket_path: str, project_path: str):
         """

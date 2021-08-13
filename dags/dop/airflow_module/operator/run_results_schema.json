@@ -1,0 +1,200 @@
+[
+  {
+    "mode": "NULLABLE",
+    "name": "elapsed_time",
+    "type": "FLOAT"
+  },
+  {
+    "fields": [
+      {
+        "mode": "REPEATED",
+        "name": "models",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "version_check",
+        "type": "BOOLEAN"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "rpc_method",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "vars",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "log_format",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "project_dir",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "profiles_dir",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "which",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "use_cache",
+        "type": "BOOLEAN"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "use_colors",
+        "type": "BOOLEAN"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "write_json",
+        "type": "BOOLEAN"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "schema",
+        "type": "BOOLEAN"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "data",
+        "type": "BOOLEAN"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "full_refresh",
+        "type": "BOOLEAN"
+      }
+    ],
+    "mode": "NULLABLE",
+    "name": "args",
+    "type": "RECORD"
+  },
+  {
+    "fields": [
+      {
+        "mode": "NULLABLE",
+        "name": "message",
+        "type": "STRING"
+      },
+      {
+        "fields": [
+          {
+            "description": "bq-datetime",
+            "mode": "NULLABLE",
+            "name": "completed_at",
+            "type": "TIMESTAMP"
+          },
+          {
+            "description": "bq-datetime",
+            "mode": "NULLABLE",
+            "name": "started_at",
+            "type": "TIMESTAMP"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "name",
+            "type": "STRING"
+          }
+        ],
+        "mode": "REPEATED",
+        "name": "timing",
+        "type": "RECORD"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "thread_id",
+        "type": "STRING"
+      },
+      {
+        "fields": [
+          {
+            "mode": "NULLABLE",
+            "name": "bytes_processed",
+            "type": "INTEGER"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "code",
+            "type": "STRING"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "_message",
+            "type": "STRING"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "rows_affected",
+            "type": "INTEGER"
+          }
+        ],
+        "mode": "NULLABLE",
+        "name": "adapter_response",
+        "type": "RECORD"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "unique_id",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "execution_time",
+        "type": "FLOAT"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "status",
+        "type": "STRING"
+      }
+    ],
+    "mode": "REPEATED",
+    "name": "results",
+    "type": "RECORD"
+  },
+  {
+    "fields": [
+      {
+        "mode": "NULLABLE",
+        "name": "env",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "invocation_id",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "dbt_version",
+        "type": "STRING"
+      },
+      {
+        "description": "bq-datetime",
+        "mode": "NULLABLE",
+        "name": "generated_at",
+        "type": "TIMESTAMP"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "dbt_schema_version",
+        "type": "STRING"
+      }
+    ],
+    "mode": "NULLABLE",
+    "name": "metadata",
+    "type": "RECORD"
+  }
+]
