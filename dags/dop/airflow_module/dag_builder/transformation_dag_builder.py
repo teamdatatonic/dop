@@ -14,11 +14,12 @@ from airflow.operators.python_operator import BranchPythonOperator
 from airflow.utils.state import State
 
 # Add DOP DAG root path to PYTHONPATH
-sys.path.append(
-    os.path.sep.join(
-        [os.environ["DOP_SERVICE_PROJECT_PATH"], "embedded_dop", "source", "dags"]
+if not os.getenv("DOP_DEVELOPER_MODE"):
+    sys.path.append(
+        os.path.sep.join(
+            [os.environ["DOP_SERVICE_PROJECT_PATH"], "embedded_dop", "source", "dags"]
+        )
     )
-)
 
 from dop import definitions  # noqa: E402
 from dop.airflow_module.operator import (  # noqa: E402

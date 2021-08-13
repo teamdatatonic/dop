@@ -118,9 +118,8 @@ It is **very important** to consider using a tag made on the DOP source reposito
 
 ### Deploy
 ```
-make deploy DOP_INFRA_PROJECT_ID={} DEPLOY_BUCKET_NAME={} DOP_ARTIFACT_ID={}
+make deploy DEPLOY_BUCKET_NAME={} DOP_ARTIFACT_ID={}
 ```
-`DOP_INFRA_PROJECT_ID`: This is the gcp infrastructure project id where build artifacts are stored. i.e. a DBT docker image stored in GCR
 `DEPLOY_BUCKET_NAME`: This is the bucket name for Cloud Composer i.e. `us-central1-dop-sandbox-us-xxxxxxxx-bucket`
 `DOP_ARTIFACT_ID`: Use the most recent artifact id produced by the `Build Artifact` step or any historical artifact ids to rollback
 

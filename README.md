@@ -62,6 +62,47 @@ See [README in the service project setup](examples/service_project/README.md) an
 Once it's setup, you should see example DOP DAGs such as `dop__example_covid19`
 ![Airflow in Docker](docs/local_airflow_ui.png)
 
+### Local development
+
+To simplify the development, in the root folder, there is a `Makefile` and a `docker-compose.yml` that start Postgres and Airflow locally
+
+From the root of the repo run:
+```shell
+make build \
+    DOP_PROJECT_ID=<my project id> \
+    DOP_LOCATION=<my project location>
+```
+
+For subsequent runs run
+```shell
+make up \
+    DOP_PROJECT_ID=<my project id> \
+    DOP_LOCATION=<my project location>
+```
+
+To shut the local environment down run:
+```shell
+make down \
+    DOP_PROJECT_ID=<my project id> \
+    DOP_LOCATION=<my project location>
+```
+
+On Linux, the mounted volumes in container use the native Linux filesystem user/group permissions.
+Airflow image is started with the user/group 50000 and doesn't have read or write access in some mounted volumes
+(check volumes section in `docker-compose.yml`)
+
+```shell
+$ docker exec -u airflow -it dop_webserver id
+uid=50000(airflow) gid=50000(airflow) groups=50000(airflow)
+$ docker exec -u airflow -it dop_webserver ls -ld dags
+drwxrwxr-x 5 1001 1001 4096 Jun  4 07:25 dags
+$ docker exec -u airflow -it dop_webserver ls -l /secret/gcp-credentials/application_default_credentials.json
+-rw------- 1 1001 1001 341 Jun  4 09:54 /secret/gcp-credentials/application_default_credentials.json
+```
+
+So, permissions must be updated manually to have read permissions on the secrets file and write permissions in the dags folder
+
+
 ## Run Airflow with DOP in Docker - Windows
 This is currently working in progress, however the instructions on what needs to be done is in the [Makefile](examples/service_project/Makefile)
 
