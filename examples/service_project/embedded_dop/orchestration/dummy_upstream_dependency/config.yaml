@@ -1,0 +1,12 @@
+enabled: true
+schedule_interval: "0 4 * * *"
+timezone: "Europe/London"
+schema: dop_sandbox_us
+
+tasks:
+  - identifier: i_am_the_dummy_dependency
+    kind:
+      action: airflow_operator
+      target: airflow.operators.dummy_operator.DummyOperator
+    options:
+      arguments:

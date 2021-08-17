@@ -1,0 +1,6 @@
+# Test libraries
+pytest==6.2.4
+
+# Dependencies extracted from infrastructure/docker/requirements.txt
+croniter==0.3.31
+marshmallow==2.19.5

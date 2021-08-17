@@ -1,5 +1,8 @@
 .PHONY: build down up up-follow logs exec restart
 
+include .env
+export
+
 DOP_GIT_SSH_REPO_PATH := #{REPLACE WITH THE SSH GIT REPO PATH OF DOP}
 DOP_PROJECT_ID := #{REPLACE WITH A GCP PROJECT ID WHERE DOP WILL EXECUTE ALL JOBS}
 DOP_LOCATION := #{REPLACE WITH A GCP REGION WHERE DATA WILL BE PERSISTED BY DOP}
@@ -14,6 +17,8 @@ DATETIME := $(shell date '+%Y%m%d-%H%M%S')
 
 LOCAL_DOP_EMBEDDED_SOURCE_PATH := ./embedded_dop/source
 DOP_TAG_NAME := master # Designed to be overwritten if a TAG or a different branch needs to be used for deployment
+AIRFLOW_VERSION := 1.10.10
+
 
 ENVS := PROJECT_ID=$(DOP_PROJECT_ID) \
 	LOCATION=$(DOP_LOCATION) \

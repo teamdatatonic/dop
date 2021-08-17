@@ -5,13 +5,14 @@ ARG AIRFLOW_HOME=/opt/airflow
 ENV AIRFLOW_HOME=${AIRFLOW_HOME}
 
 USER root
-# Install dos2unix
-RUN apt-get update && apt-get install dos2unix -y
+# Install dos2unix used to resolve windows line ending issues
+# And gcc used in dbt packages compilation
+RUN apt-get update && apt-get install dos2unix gcc -y
 
 USER airflow
 
 # Install composer dependencies & additional required dependencies not included in Composer
-COPY requirements.composer.txt /requirements.composer.txt
+COPY composer_1.10.10/requirements.composer.txt /requirements.composer.txt
 COPY requirements.txt /pre-installed-requirements.txt
 RUN set -ex \
     && pip install --user -r /pre-installed-requirements.txt

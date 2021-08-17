@@ -1,0 +1,51 @@
+version: '3.7'
+services:
+  postgres:
+    image: postgres:13.2-alpine
+    container_name: dop_postgres
+    restart: always
+    environment:
+      - POSTGRES_USER=airflow
+      - POSTGRES_PASSWORD=airflow
+      - POSTGRES_DB=airflow
+    logging:
+      options:
+        max-size: 10m
+        max-file: "3"
+
+  webserver:
+    build: infrastructure/docker/composer_${AIRFLOW_VERSION}
+    container_name: dop_webserver
+    restart: always
+    depends_on:
+        - postgres
+    environment:
+      - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres/airflow
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__CORE__LOGGING_LEVEL=INFO
+      - GOOGLE_APPLICATION_CREDENTIALS=/secret/gcp-credentials/application_default_credentials.json
+      - DOP_SANDBOX_ENVIRONMENT=true # set to true if running locally on a laptop, this enables certain features such as service account impersonation
+      - DOP_DEVELOPER_MODE=true # enable developer mode so that WIP code can be used in docker
+
+      # The following environment environment variables need to be set on both the docker local environment as well as the composer environment
+      - DOP_SERVICE_PROJECT_PATH=/opt/airflow/dags/dop_service_project # The absolute directory of the service project path. Each DBT project in this path should be within their folder and must be valid. I.e. on Docker, this could be /opt/airflow/dags/dop/dbt-projects. On Composer this could be anywhere under the `/home/airflow/gcs/dags` or `/home/airflow/gcs/data` directory
+      - DOP_PROJECT_ID=${PROJECT_ID?project_id_is_undefined} # GCP project_id - to be used as the project where data will be consumed & persisted
+      - DOP_LOCATION=${LOCATION?location_is_undefined} # GCP region - to be used to persist all data
+      - DOP_INFRA_PROJECT_ID=${PROJECT_ID?project_id_is_undefined} # GCP infrastructure project id, for local development this isn't used so leaving it as the same as gcp service project id
+    logging:
+      options:
+        max-size: 10m
+        max-file: "3"
+    volumes:
+      - ./examples/service_project:/opt/airflow/dags/dop_service_project
+      - ./dags:/opt/airflow/dags
+      - ./infrastructure/docker/developer_only/.airflowignore:/opt/airflow/dags/.airflowignore
+      - ~/.config/gcloud/application_default_credentials.json:/secret/gcp-credentials/application_default_credentials.json # mount application default credentials only so no keys as used
+    ports:
+      - "8082:8080"
+    command: webserver
+    healthcheck:
+      test: ["CMD-SHELL", "[ -f /opt/airflow/airflow-webserver.pid ]"]
+      interval: 30s
+      timeout: 30s
+      retries: 3

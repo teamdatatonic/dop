@@ -1,0 +1,39 @@
+# To run this example:
+# - Set enabled to true
+# - Add Dataflow Admin role to Composer service account
+# - Replace PROJECT_ID, REGION, TEMP_BUCKET and OUTPUT_BUCKET placeholders
+enabled: false
+schedule_interval: "0 * * * *"
+timezone: "Europe/London"
+schema: sample_dataset
+
+tasks:
+  - identifier: dummy_start_operator
+    kind:
+      action: airflow_operator
+      target: airflow.operators.dummy_operator.DummyOperator
+
+  - identifier: dataflow_template
+    kind:
+      action: airflow_operator
+      target: airflow.contrib.operators.dataflow_operator.DataflowTemplateOperator
+    options:
+      arguments:
+        template: gs://dataflow-templates/latest/Word_Count
+        job_name: word_count
+        dataflow_default_options:
+          project: PROJECT_ID
+          region: REGION
+          tempLocation: gs://TEMP_BUCKET/dataflow/staging/
+        parameters:
+          inputFile: gs://dataflow-samples/shakespeare/kinglear.txt
+          output: gs://OUTPUT_BUCKET/word_count/output
+    dependencies:
+      - dummy_start_operator
+
+  - identifier: dummy_end_operator
+    kind:
+      action: airflow_operator
+      target: airflow.operators.dummy_operator.DummyOperator
+    dependencies:
+      - dataflow_template
